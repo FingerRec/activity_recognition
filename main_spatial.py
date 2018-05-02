@@ -23,7 +23,7 @@ def main():
     global arg
     #
     arg = parser.parse_args()
-    print arg
+    print(arg)
 
     #Prepare DataLoader
     data_loader = spatial_dataloader.spatial_dataloader(

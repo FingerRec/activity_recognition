@@ -33,7 +33,7 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='man
 def main():
     global arg
     arg = parser.parse_args()
-    print arg
+    print(arg)
 
     #Prepare DataLoader
     data_loader = motion_dataloader.Motion_DataLoader(

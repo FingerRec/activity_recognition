@@ -8,6 +8,5 @@
 out
 gen
 .idea/
-/checkpoints/
 /data/record/motion/
 /data/record/spatial/
