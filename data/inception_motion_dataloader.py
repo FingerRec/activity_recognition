@@ -53,7 +53,7 @@ class motion_dataset(Dataset):
 
         flow = torch.FloatTensor(2 * self.in_channel, self.img_rows, self.img_cols)
         i = int(self.clips_idx)
-
+        #10 frame
         for j in range(self.in_channel):
             idx = i + j
             idx = str(idx)

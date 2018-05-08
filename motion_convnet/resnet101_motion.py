@@ -19,14 +19,16 @@ from utils.utils import *
 from models.ResNet import *
 from data import motion_dataloader
 from config import opt
+from tensorboardX import SummaryWriter
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 parser = argparse.ArgumentParser(description='UCF101 motion stream on resnet101')
-parser.add_argument('--epochs', default=500, type=int, metavar='N', help='number of total epochs')
+parser.add_argument('--epochs', default=10, type=int, metavar='N', help='number of total epochs')
 parser.add_argument('--batch-size', default=16, type=int, metavar='N', help='mini-batch size (default: 64)')
 parser.add_argument('--lr', default=1e-2, type=float, metavar='LR', help='initial learning rate')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
-parser.add_argument('--resume', default = opt.temporal_checkpoint_path, type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
+parser.add_argument('--resume', default = '', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
 
 #基本与spatial_cnn一致，除了加载数据以外
@@ -42,7 +44,7 @@ def main():
                         path = opt.temporal_train_data_root,
                         ucf_list = opt.ucf_list,
                         ucf_split = opt.ucf_split,
-                        in_channel = 10
+                        in_channel = 10 #the flow stack number
                         )
     
     train_loader,test_loader, test_video = data_loader.run()
@@ -59,7 +61,7 @@ def main():
                         nb_epochs = arg.epochs,
                         lr = arg.lr,
                         batch_size = arg.batch_size,
-                        channel = 10*2,
+                        channel = 10*2, #input img
                         test_video = test_video
                         )
     #Training
@@ -111,27 +113,32 @@ class Motion_CNN():
         self.build_model()
         self.resume_and_evaluate()
         cudnn.benchmark = True
-        
+        writer = SummaryWriter()
         for self.epoch in range(self.start_epoch, self.nb_epochs):
             self.train_1epoch()
-            prec1, val_loss = self.validate_1epoch()
-            is_best = prec1 > self.best_prec1
-            #lr_scheduler
-            self.scheduler.step(val_loss)
-            # save model
-            if is_best:
-                self.best_prec1 = prec1
-                with open( opt.opf_preds,'wb') as f:
-                    pickle.dump(self.dic_video_level_preds,f)
-                f.close() 
-            
-            save_checkpoint({
-                'epoch': self.epoch,
-                'state_dict': self.model.state_dict(),
-                'best_prec1': self.best_prec1,
-                'optimizer' : self.optimizer.state_dict()
-            },is_best, opt.ResNet101_temporal_checkpoint_path, opt.ResNet101_temporal_best_model_path)
+            if self.epoch > 0 and self.epoch % 10 == 0:
+                prec1, val_loss = self.validate_1epoch()
+                writer.add_scalar('data/scalar1',prec1,self.epoch)
+                writer.add_scalar('data/scalar2',val_loss, self.epoch)
+                is_best = prec1 > self.best_prec1
+                #lr_scheduler
+                self.scheduler.step(val_loss)
+                # save model
+                if is_best:
+                    self.best_prec1 = prec1
+                    with open( opt.ResNet101_opf_preds,'wb') as f:
+                        pickle.dump(self.dic_video_level_preds,f)
+                    f.close()
 
+                save_checkpoint({
+                    'epoch': self.epoch,
+                    'state_dict': self.model.state_dict(),
+                    'best_prec1': self.best_prec1,
+                    'optimizer' : self.optimizer.state_dict()
+                },is_best, opt.ResNet101_temporal_checkpoint_path, opt.ResNet101_temporal_best_model_path)
+        # export scalar data to JSON for external processing
+        writer.export_scalars_to_json("./all_scalars.json")
+        writer.close()
     def train_1epoch(self):
         print('==> Epoch:[{0}/{1}][training stage]'.format(self.epoch, self.nb_epochs))
 

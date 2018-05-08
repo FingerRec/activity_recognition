@@ -28,11 +28,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # 命令行选项与参数解析
 parser = argparse.ArgumentParser(description='UCF101 spatial stream on bninception')
-parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs')
-parser.add_argument('--batch-size', default=1, type=int, metavar='N', help='mini-batch size (default: 25)')
-parser.add_argument('--lr', default=5e-4, type=float, metavar='LR', help='initial learning rate')
+parser.add_argument('--epochs', default=500, type=int, metavar='N', help='number of total epochs')
+parser.add_argument('--batch-size', default = 3, type=int, metavar='N', help='mini-batch size (default: 25)')
+parser.add_argument('--lr', default=5e-5, type=float, metavar='LR', help='initial learning rate')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
-parser.add_argument('--resume', default='', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
+parser.add_argument('--resume', default = '', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
 
 
@@ -129,8 +129,8 @@ class Spatial_CNN():
         cudnn.benchmark = True  # ？
 
         for self.epoch in range(self.start_epoch, self.nb_epochs):
-            self.train_1epoch()  # 训练一个epoch
-            if self.epoch % 10 == 0:
+            acc = self.train_1epoch()  # 训练一个epoch
+            if self.epoch % 10 == 0 and self.epoch > 1:
                 prec1, val_loss = self.validate_1epoch()  # 验证预测率和损失函数
                 is_best = prec1 > self.best_prec1
                 # lr_scheduler
@@ -138,7 +138,7 @@ class Spatial_CNN():
                 # save model，如果是最好模型则保存
                 if is_best:
                     self.best_prec1 = prec1  # 预测结果
-                    with open(opt.rgb_preds, 'wb') as f:
+                    with open(opt.bninception_rgb_preds, 'wb') as f:
                         pickle.dump(self.dic_video_level_preds, f)  # 保存视频级别预测结果
                     f.close()
 
@@ -148,7 +148,7 @@ class Spatial_CNN():
                     'state_dict': self.model.state_dict(),  # 参数
                     'best_prec1': self.best_prec1,  # 预测记过
                     'optimizer': self.optimizer.state_dict()  # ？
-                }, is_best, opt.bninception_patial_checkpoint_path, opt.bninception_spatial_best_model_path)
+                }, is_best, opt.bninception_spatial_checkpoint_path, opt.bninception_spatial_best_model_path)
 
     # 训练集，训练1epoch
     def train_1epoch(self):
@@ -208,6 +208,7 @@ class Spatial_CNN():
                 'lr': self.optimizer.param_groups[0]['lr']
                 }
         record_info(info, opt.bninception_rgb_train_record_path, 'train')
+        return top1
 
     # 验证集
     def validate_1epoch(self):

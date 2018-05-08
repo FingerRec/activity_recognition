@@ -35,6 +35,8 @@ class DefaultConfig(object):
     momentum = 0.9
     lr_decay = 0.95  # when val_loss increase, lr = lr*lr_decay
     weight_decay = 1e-4  # 损失函数
+
+
 # ------------------------------------------------ Data Set PATH -------------------------------------------------------
     project_path = '/home/zdwyf1/Code/ActivityRecognition/activity_recognition/' #工程路径
     spatial_train_data_root = '/home/zdwyf1/DataSet/jpegs_256/'  # 空间域网络训练集存放路径
@@ -45,7 +47,9 @@ class DefaultConfig(object):
     ucf_list = project_path + 'data/UCF_list/'# 标签数据位置
     ucf_split = '01' # ucf_split 序号
     frame_count = project_path + 'data/dic/frame_count.pickle'  # 帧统计序列
-    # ------------------------------------------------ BasicModule PATH ------------------------------------------------
+    dir_flow_path = "/media/zdwyf1/Elements/OpticalFlow/data/flow/"
+    dir_grayimg_path = "/media/zdwyf1/Elements/OpticalFlow/data/grayimg/"
+# ------------------------------------------------ BasicModule PATH ----------------------------------------------------
     BasicModule_spatial_checkpoint_path = project_path + 'checkpoints/BasicModule/spatial_checkpoint.pth.tar'
     BasicModule_temporal_checkpoint_path = project_path + 'checkpoints/BasicModule/temporal_checkpoint.pth.tar'
 
@@ -112,6 +116,44 @@ class DefaultConfig(object):
     Inceptionv4_rgb_test_record_path = project_path + 'data/record/Inceptionv4/spatial/rgb_test.csv'
     Inceptionv4_flow_train_record_path = project_path + 'data/record/Inceptionv4/motion/opf_train.csv'
     Inceptionv4_flow_test_record_path = project_path + 'data/record/Inceptionv4/motion/opf_test.csv'
+
+# ------------------------------------------------ InceptionV3 PATH ----------------------------------------------------
+    # pretrained on kinetics
+    Inceptionv3_spatial_checkpoint_path = project_path + 'checkpoints/Inceptionv3/inception_v3_kinetics_rgb_pretrained.zip'
+    Inceptionv3_temporal_checkpoint_path = project_path + 'checkpoints/Inceptionv3/inception_v3_kinetics_flow_pretrained.zip'
+
+    Inceptionv3_spatial_best_model_path = project_path + 'checkpoints/Inceptionv3/spatial_model_best.pth.tar'
+    Inceptionv3_temporal_best_model_path = project_path + 'checkpoints/Inceptionv3/temporal_model_best.pth.tar'
+
+    # 预测序列位置
+    Inceptionv3_rgb_preds = project_path + 'data/record/Inceptionv3/spatial/spatial_video_preds.pickle'  # rgb预测序列
+    Inceptionv3_opf_preds = project_path + 'data/record/Inceptionv3/motion/motion_video_preds.pickle'  # opf预测序列
+
+    #
+    Inceptionv3_rgb_train_record_path = project_path + 'data/record/Inceptionv3/spatial/rgb_train.csv'
+    Inceptionv3_rgb_test_record_path = project_path + 'data/record/Inceptionv3/spatial/rgb_test.csv'
+    Inceptionv3_flow_train_record_path = project_path + 'data/record/Inceptionv3/motion/opf_train.csv'
+    Inceptionv3_flow_test_record_path = project_path + 'data/record/Inceptionv3/motion/opf_test.csv'
+
+
+# ------------------------------------------------ resnet101_tsn PATH ----------------------------------------------------
+    resnet101_tsn_spatial_checkpoint_path = project_path + 'checkpoints/resnet101_tsn/inception_v3_kinetics_rgb_pretrained.zip'
+    resnet101_tsn_temporal_checkpoint_path = project_path + 'checkpoints/resnet101_tsn/inception_v3_kinetics_flow_pretrained.zip'
+
+    resnet101_tsn_spatial_best_model_path = project_path + 'checkpoints/resnet101_tsn/spatial_model_best.pth.tar'
+    resnet101_tsn_temporal_best_model_path = project_path + 'checkpoints/resnet101_tsn/temporal_model_best.pth.tar'
+
+    # 预测序列位置
+    resnet101_tsn_rgb_preds = project_path + 'data/record/resnet101_tsn/spatial/spatial_video_preds.pickle'  # rgb预测序列
+    resnet101_tsn_opf_preds = project_path + 'data/record/resnet101_tsn/motion/motion_video_preds.pickle'  # opf预测序列
+
+    #
+    resnet101_tsn_rgb_train_record_path = project_path + 'data/record/resnet101_tsn/spatial/rgb_train.csv'
+    resnet101_tsn_rgb_test_record_path = project_path + 'data/record/resnet101_tsn/spatial/rgb_test.csv'
+    resnet101_tsn_flow_train_record_path = project_path + 'data/record/resnet101_tsn/motion/opf_train.csv'
+    resnet101_tsn_flow_test_record_path = project_path + 'data/record/resnet101_tsn/motion/opf_test.csv'
+
+    resnet101_tsn_flow_origin_path = '/media/zdwyf1/Elements/OpticalFlow/data/flow/'
 
 def parse(self, kwargs):
     '''

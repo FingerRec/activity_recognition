@@ -18,7 +18,10 @@ import torch.nn as nn
 import torch
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
-
+import numpy as np
+import cv2
+import time
+import matplotlib.pyplot as plt
 # other util
 # 计算第一个匹配和前五个匹配结果
 def accuracy(output, target, topk=(1,)):
@@ -93,4 +96,68 @@ def record_info(info,filename,mode):
     else: # else it exists so append without writing the header
         df.to_csv(filename,mode = 'a',header=False,index=False,columns=column_names)   
 
+#read flow
+def read_flow(flow_or_path, quantize=False, *args, **kwargs):
+    """Read an optical flow map
+    Args:
+        flow_or_path(ndarray or str): either a flow map or path of a flow
+        quantize(bool): whether to read quantized pair, if set to True,
+                        remaining args will be passed to :func:`dequantize_flow`
+    Returns:
+        ndarray: optical flow
+    """
+    if isinstance(flow_or_path, np.ndarray):
+        if (flow_or_path.ndim != 3) or (flow_or_path.shape[-1] != 2):
+            raise ValueError(
+                'Invalid flow with shape {}'.format(flow_or_path.shape))
+        return flow_or_path
+    elif not isinstance(flow_or_path, str):
+        raise TypeError(
+            '"flow_or_path" must be a filename or numpy array, not {}'.format(
+                type(flow_or_path)))
 
+    if not quantize:
+        with open(flow_or_path, 'rb') as f:
+            try:
+                header = f.read(4).decode('utf-8')
+            except:
+                raise IOError('Invalid flow file: {}'.format(flow_or_path))
+            else:
+                if header != 'PIEH':
+                    raise IOError(
+                        'Invalid flow file: {}, header does not contain PIEH'.
+                            format(flow_or_path))
+
+            w = np.fromfile(f, np.int32, 1).squeeze()
+            h = np.fromfile(f, np.int32, 1).squeeze()
+            flow = np.fromfile(f, np.float32, w * h * 2).reshape((h, w, 2))
+    else:
+        from cvbase.image import read_img
+        from cvbase.opencv import IMREAD_UNCHANGED
+        dx_filename, dy_filename = _pair_name(flow_or_path)
+        dx = read_img(dx_filename, flag=IMREAD_UNCHANGED)
+        dy = read_img(dy_filename, flag=IMREAD_UNCHANGED)
+        flow = dequantize_flow(dx, dy, *args, **kwargs)
+
+    return flow.astype(np.float32)
+# flow2img
+def flow2img(flow, BGR=True):
+    x, y = flow[:,:, 0], flow[:,:, 1]
+
+    #plt.imshow(x,  cmap='Greys_r')
+    #print x.shape
+    #plt.imshow(y,  cmap='Greys_r')
+    #plt.show()
+    hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype = np.uint8)
+    ma, an = cv2.cartToPolar(x, y, angleInDegrees=True)
+    hsv[..., 0] = (an / 2).astype(np.uint8)
+    hsv[..., 1] = (cv2.normalize(ma, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)).astype(np.uint8)
+    hsv[..., 2] = 255
+    img = []
+    if BGR:
+        img = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+        return img
+    else:
+        img[0] = cv2.cvtColor(x, cv2.COLOR_HSV2RGB)
+        img[1] = cv2.cvtColor(y, cv2.COLOR_HSV2RGB)
+        return img

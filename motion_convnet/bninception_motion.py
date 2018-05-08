@@ -31,7 +31,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 parser = argparse.ArgumentParser(description='UCF101 motion stream on inceptionv4')
 parser.add_argument('--epochs', default=200, type=int, metavar='N', help='number of total epochs')
 parser.add_argument('--batch-size', default=5, type=int, metavar='N', help='mini-batch size (default: 64)')
-parser.add_argument('--lr', default=1e-2, type=float, metavar='LR', help='initial learning rate')
+parser.add_argument('--lr', default=5e-5, type=float, metavar='LR', help='initial learning rate')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
 parser.add_argument('--resume', default='', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
@@ -124,8 +124,8 @@ class Motion_CNN():
         cudnn.benchmark = True
 
         for self.epoch in range(self.start_epoch, self.nb_epochs):
-            self.train_1epoch()
-            if self.epoch % 10 == 0:
+            acc = self.train_1epoch()
+            if self.epoch % 10 == 0 and self.epoch > 0:
                 prec1, val_loss = self.validate_1epoch()
                 is_best = prec1 > self.best_prec1
                 # lr_scheduler
@@ -133,7 +133,7 @@ class Motion_CNN():
                 # save model
                 if is_best:
                     self.best_prec1 = prec1
-                    with open(opt.opf_preds, 'wb') as f:
+                    with open(opt.bninception_opf_preds, 'wb') as f:
                         pickle.dump(self.dic_video_level_preds, f)
                     f.close()
 
@@ -193,6 +193,7 @@ class Motion_CNN():
                 'lr': self.optimizer.param_groups[0]['lr']
                 }
         record_info(info, opt.bninception_flow_train_record_path, 'train')
+        return top1
 
     def validate_1epoch(self):
         print('==> Epoch:[{0}/{1}][validation stage]'.format(self.epoch, self.nb_epochs))

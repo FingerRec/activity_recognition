@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 import random
 from split_train_test_video import *
 from skimage import io, color, exposure
+from config import opt
 
 class spatial_dataset(Dataset):  
     def __init__(self, dic, root_dir, mode, transform=None):
@@ -124,7 +125,7 @@ class spatial_dataloader():
         for video in self.test_video:
             nb_frame = self.frame_count[video]-10+1
             interval = int(nb_frame/19) #
-            for i in range(19):
+            for i in range(19): #19帧.每次取整加1
                 frame = i*interval
                 key = video+ ' '+str(frame+1)
                 self.dic_testing[key] = self.test_video[video]       #{'pxxxx_g01_c03 1'} = 69  1 20  39 ....
@@ -157,7 +158,7 @@ class spatial_dataloader():
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
                 ]))
-        
+        #validation_set 71877 Fencing_g06_c03 136(对应帧数目)
         print '==> Validation data :',len(validation_set),'frames'
         print validation_set[1][1].size()
 
@@ -175,7 +176,7 @@ class spatial_dataloader():
 if __name__ == '__main__':
     
     dataloader = spatial_dataloader(BATCH_SIZE=1, num_workers=1, 
-                                path='/数据库/UCF-101切片/jpegs_256/',
-                                ucf_list='../UCF_list/',
-                                ucf_split='01')
+                                path=opt.spatial_train_data_root,
+                                ucf_list=opt.ucf_list,
+                                ucf_split=opt.ucf_split)
     train_loader,val_loader,test_video = dataloader.run()
