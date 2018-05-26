@@ -48,7 +48,10 @@ class DefaultConfig(object):
     ucf_split = '01' # ucf_split 序号
     frame_count = project_path + 'data/dic/frame_count.pickle'  # 帧统计序列
     dir_flow_path = "/media/zdwyf1/Elements/OpticalFlow/data/flow/"
-    dir_grayimg_path = "/media/zdwyf1/Elements/OpticalFlow/data/grayimg/"
+    dir_grayimg_path = "/home/zdwyf1/DataSet/grayimg/"
+    dir_rgbimg_path = "/home/zdwyf1/DataSet/rgbimg/"
+    flow_var_rank = "/media/zdwyf1/Elements/OpticalFlow/data/flow_var_rank.txt"
+    flow_var_rank3 = "/media/zdwyf1/Elements/OpticalFlow/data/flow_var_rank_3_per_split.txt"
 # ------------------------------------------------ BasicModule PATH ----------------------------------------------------
     BasicModule_spatial_checkpoint_path = project_path + 'checkpoints/BasicModule/spatial_checkpoint.pth.tar'
     BasicModule_temporal_checkpoint_path = project_path + 'checkpoints/BasicModule/temporal_checkpoint.pth.tar'
@@ -137,23 +140,23 @@ class DefaultConfig(object):
 
 
 # ------------------------------------------------ resnet101_tsn PATH ----------------------------------------------------
-    resnet101_tsn_spatial_checkpoint_path = project_path + 'checkpoints/resnet101_tsn/inception_v3_kinetics_rgb_pretrained.zip'
-    resnet101_tsn_temporal_checkpoint_path = project_path + 'checkpoints/resnet101_tsn/inception_v3_kinetics_flow_pretrained.zip'
+    ResNet101_tsn_spatial_checkpoint_path = project_path + 'checkpoints/ResNet101_tsn/inception_v3_kinetics_rgb_pretrained.zip'
+    ResNet101_tsn_temporal_checkpoint_path = project_path + 'checkpoints/ResNet101_tsn/inception_v3_kinetics_flow_pretrained.zip'
 
-    resnet101_tsn_spatial_best_model_path = project_path + 'checkpoints/resnet101_tsn/spatial_model_best.pth.tar'
-    resnet101_tsn_temporal_best_model_path = project_path + 'checkpoints/resnet101_tsn/temporal_model_best.pth.tar'
+    ResNet101_tsn_spatial_best_model_path = project_path + 'checkpoints/ResNet101_tsn/spatial_model_best.pth.tar'
+    ResNet101_tsn_temporal_best_model_path = project_path + 'checkpoints/ResNet101_tsn/temporal_model_best.pth.tar'
 
     # 预测序列位置
-    resnet101_tsn_rgb_preds = project_path + 'data/record/resnet101_tsn/spatial/spatial_video_preds.pickle'  # rgb预测序列
-    resnet101_tsn_opf_preds = project_path + 'data/record/resnet101_tsn/motion/motion_video_preds.pickle'  # opf预测序列
+    ResNet101_tsn_rgb_preds = project_path + 'data/record/ResNet101_tsn/spatial/spatial_video_preds.pickle'  # rgb预测序列
+    ResNet101_tsn_opf_preds = project_path + 'data/record/ResNet101_tsn/motion/motion_video_preds.pickle'  # opf预测序列
 
     #
-    resnet101_tsn_rgb_train_record_path = project_path + 'data/record/resnet101_tsn/spatial/rgb_train.csv'
-    resnet101_tsn_rgb_test_record_path = project_path + 'data/record/resnet101_tsn/spatial/rgb_test.csv'
-    resnet101_tsn_flow_train_record_path = project_path + 'data/record/resnet101_tsn/motion/opf_train.csv'
-    resnet101_tsn_flow_test_record_path = project_path + 'data/record/resnet101_tsn/motion/opf_test.csv'
+    ResNet101_tsn_rgb_train_record_path = project_path + 'data/record/ResNet101_tsn/spatial/rgb_train.csv'
+    ResNet101_tsn_rgb_test_record_path = project_path + 'data/record/ResNet101_tsn/spatial/rgb_test.csv'
+    ResNet101_tsn_flow_train_record_path = project_path + 'data/record/ResNet101_tsn/motion/opf_train.csv'
+    ResNet101_tsn_flow_test_record_path = project_path + 'data/record/ResNet101_tsn/motion/opf_test.csv'
 
-    resnet101_tsn_flow_origin_path = '/media/zdwyf1/Elements/OpticalFlow/data/flow/'
+    ResNet101_tsn_flow_origin_path = '/media/zdwyf1/Elements/OpticalFlow/data/flow/'
 
 def parse(self, kwargs):
     '''

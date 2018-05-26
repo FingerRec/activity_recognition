@@ -55,28 +55,66 @@ class motion_dataset(Dataset):
     # stack 8 img, 4 dx and 4 dy
     def stackopf(self):
         flow = torch.FloatTensor(2 * self.in_channel, self.img_rows, self.img_cols)
-        if(self.video.split('_')[0] == 'HandstandPushups'): return flow;
+        if((self.video.split('_')[0] == 'HandstandPushups') or (self.video.split('_')[0] == 'PommelHorse')): return flow;
         for j in range(self.in_channel):
-            flow_path = opt.resnet101_tsn_flow_origin_path + 'v_' + self.video + '_flo_' +str(j + 1) +'.flo'
-            real_flow = read_flow(flow_path)
+            #flow_path = opt.resnet101_tsn_flow_origin_path + 'v_' + self.video + '_flo_' +str(j + 1) +'.flo'
+            #real_flow = read_flow(flow_path)
          #   plt.imshow(real_flow[:, :, 0],  cmap='Greys_r')
             # print x.shape
         #    plt.imshow(real_flow[:, :, 1],  cmap='Greys_r')
         #    plt.show()
 
-            imgH = Image.fromarray(real_flow[:, :, 0])
-            imgH = imgH.convert('L')
-            imgV = Image.fromarray(real_flow[:, :, 1])
-            imgV = imgV.convert('L')
+          #  imgH = Image.fromarray(real_flow[:, :, 0])
+         #   imgH = imgH.convert('L')
+         #   imgV = Image.fromarray(real_flow[:, :, 1])
+         #   imgV = imgV.convert('L')
+            i = int(self.clips_idx)  # i:148
+            idx = i + j
+            img_u_path = opt.dir_grayimg_path + 'v_' + self.video + '_flo_' + str(j + 1) + '_img_u_dx.jpg'
+            img_v_path = opt.dir_grayimg_path + 'v_' + self.video + '_flo_' + str(j + 1) + '_img_u_dy.jpg'
 
-         #   imgH = Image.open(real_flow[:, :, 0])
-        #    imgV = Image.open(real_flow[:, :, 0])
+            imgH = Image.open(img_u_path)
+            imgV = Image.open(img_v_path)
 
             H = self.transform(imgH)
             V = self.transform(imgV)
 
             flow[2 * (j - 1), :, :] = H
             flow[2 * (j - 1) + 1, :, :] = V
+        return flow
+    def stackopf10pervideo(self):
+        name = 'v_' + self.video
+        u = self.root_dir + 'u/' + name
+        v = self.root_dir + 'v/' + name
+
+        flow = torch.FloatTensor(2 * self.in_channel, self.img_rows, self.img_cols)
+        i = int(self.clips_idx)
+        with open(opt.flow_var_rank3, 'r') as f:
+            for line in f:
+                line = line.strip()
+                each_row = line.split(' ')
+                if each_row[0] == name:
+                    rank = each_row[1:11]
+               #     rank = sorted(rank)
+               #     print (rank)
+        # 入入10张
+        for j in range(self.in_channel):
+            idx = rank[j]
+            idx = str(idx)
+            frame_idx = 'frame' + idx.zfill(6)
+            h_image = u + '/' + frame_idx + '.jpg'
+            v_image = v + '/' + frame_idx + '.jpg'
+
+            imgH = (Image.open(h_image))
+            imgV = (Image.open(v_image))
+
+            H = self.transform(imgH)
+            V = self.transform(imgV)
+
+            flow[2 * (j - 1), :, :] = H
+            flow[2 * (j - 1) + 1, :, :] = V
+            imgH.close()
+            imgV.close()
         return flow
 
     def __len__(self):
@@ -172,8 +210,10 @@ class Motion_DataLoader():
         training_set = motion_dataset(dic=self.dic_video_train, in_channel=self.in_channel, root_dir=self.data_path,
                                       mode='train',
                                       transform=transforms.Compose([
-                                          transforms.Scale([224, 224]),
+                                          transforms.RandomResizedCrop(224),
+                                          transforms.RandomHorizontalFlip(),
                                           transforms.ToTensor(),
+                                          transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                                       ]))
         print '==> Training data :', len(training_set), ' videos', training_set[1][0].size()
 
@@ -194,6 +234,7 @@ class Motion_DataLoader():
                                         transform=transforms.Compose([
                                             transforms.Scale([224, 224]),
                                             transforms.ToTensor(),
+                                            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
                                         ]))
         print '==> Validation data :', len(validation_set), ' frames', validation_set[1][1].size()
         # print validation_set[1]

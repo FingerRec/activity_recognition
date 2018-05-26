@@ -11,6 +11,7 @@ gen
 /checkpoints/BasicModule/*
 /checkpoints/bninception/*
 /checkpoints/Inceptionv4/*
+/checkpoints/Inceptionv3/*
 /checkpoints/ResNet101/*
 
 /data/record/BasicModule/motion/*

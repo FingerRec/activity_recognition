@@ -31,33 +31,84 @@ class motion_dataset(Dataset):
         self.img_cols=224
 
     def stackopf(self):
-        name = 'v_'+self.video
-        u = self.root_dir+ 'u/' + name
-        v = self.root_dir+ 'v/'+ name
-        
-        flow = torch.FloatTensor(2*self.in_channel,self.img_rows,self.img_cols)
-        i = int(self.clips_idx)
+        name = 'v_' + self.video
+        u = self.root_dir + 'u/' + name
+        v = self.root_dir + 'v/' + name
 
+        flow = torch.FloatTensor(2 * self.in_channel, self.img_rows, self.img_cols)
+        i = int(self.clips_idx)
 
         for j in range(self.in_channel):
             idx = i + j
             idx = str(idx)
-            frame_idx = 'frame'+ idx.zfill(6)
-            h_image = u +'/' + frame_idx +'.jpg'
-            v_image = v +'/' + frame_idx +'.jpg'
-            
-            imgH=(Image.open(h_image))
-            imgV=(Image.open(v_image))
+            frame_idx = 'frame' + idx.zfill(6)
+            h_image = u + '/' + frame_idx + '.jpg'
+            v_image = v + '/' + frame_idx + '.jpg'
+
+            imgH = (Image.open(h_image))
+            imgV = (Image.open(v_image))
 
             H = self.transform(imgH)
             V = self.transform(imgV)
 
-            
-            flow[2*(j-1),:,:] = H
-            flow[2*(j-1)+1,:,:] = V      
+            flow[2 * (j - 1), :, :] = H
+            flow[2 * (j - 1) + 1, :, :] = V
             imgH.close()
-            imgV.close()  
+            imgV.close()
         return flow
+
+    def stackopfmaxvar(self):
+        name = 'v_' + self.video
+        u = self.root_dir + 'u/' + name
+        v = self.root_dir + 'v/' + name
+
+        flow = torch.FloatTensor(2 * self.in_channel, self.img_rows, self.img_cols)
+        img_idx = int(self.clips_idx)
+
+        for j in range(self.in_channel):
+            # 从num张图片中选择方差最大的返回
+            num = 2
+            var1 = 0
+            var2 = 0
+            H = []
+            V = []
+           # H, V = self.getmaxvalimg(u, v, i + num * j, num)
+            for i in range(num):
+                u_img_temp_idx = u + '/frame' + str(img_idx + i).zfill(6) + '.jpg'
+                u_img_temp = Image.open(u_img_temp_idx)
+                u_var_temp = np.var(u_img_temp)
+                if u_var_temp > var1:
+                    H = self.transform(u_img_temp)
+                    flow[2 * (j - 1), :, :] = H
+                v_img_temp_idx = v + '/frame' + str(img_idx + i).zfill(6) + '.jpg'
+                v_img_temp = Image.open(v_img_temp_idx)
+                v_var_temp = np.var(v_img_temp)
+                if v_var_temp > var2:
+                    V = self.transform(v_img_temp)
+                    flow[2 * (j - 1) + 1, :, :] = V
+                v_img_temp.close()
+                u_img_temp.close()
+        return flow
+
+    def getmaxvalimg(self, u_origin, v_origin, img_idx, num):
+      #  H = []
+      #  V = []
+        var1 = 0
+        var2 = 0
+        for i in range(num):
+            u_img_temp_idx = u_origin + '/frame' + str(img_idx + i).zfill(6) + '.jpg'
+            u_img_temp = Image.open(u_img_temp_idx)
+            u_var_temp = np.var(u_img_temp)
+            if u_var_temp > var1:
+                H = self.transform(u_img_temp)
+            v_img_temp_idx = v_origin + '/frame' + str(img_idx + i).zfill(6) + '.jpg'
+            v_img_temp = Image.open(v_img_temp_idx)
+            v_var_temp = np.var(v_img_temp)
+            if v_var_temp > var2:
+                V = self.transform(v_img_temp)
+            #u_img_temp.close()
+           # v_img_temp.close()
+        return H, V
 
     def __len__(self):
         return len(self.keys)
@@ -67,7 +118,7 @@ class motion_dataset(Dataset):
         
         if self.mode == 'train':
             self.video, nb_clips = self.keys[idx].split('-')
-            self.clips_idx = random.randint(1,int(nb_clips))
+            self.clips_idx = random.randint(1,int(nb_clips)) #随机选择一个开始位置
         elif self.mode == 'val':
             self.video,self.clips_idx = self.keys[idx].split('-')
         else:
@@ -75,8 +126,8 @@ class motion_dataset(Dataset):
 
         label = self.values[idx]
         label = int(label)-1 
-        data = self.stackopf()
-
+        #data = self.stackopf()
+        data = self.stackopfmaxvar()
         if self.mode == 'train':
             sample = (data,label)
         elif self.mode == 'val':
@@ -152,7 +203,8 @@ class Motion_DataLoader():
         training_set = motion_dataset(dic=self.dic_video_train, in_channel=self.in_channel, root_dir=self.data_path,
             mode='train',
             transform = transforms.Compose([
-            transforms.Scale([224,224]),
+            transforms.RandomResizedCrop(224),
+            #transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             ]))
         print '==> Training data :', len(training_set), ' videos', training_set[1][0].size()
